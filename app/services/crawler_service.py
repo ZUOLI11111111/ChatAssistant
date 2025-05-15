@@ -24,12 +24,13 @@ async def crawl_article(url: str) -> str:
     Returns:
         提取的文章内容
     """
-   
+    pass
 
 
 async def _crawl_bilibili(url: str) -> str:
     """Bilibili视频爬取 (简化版)"""
-    
+    pass
+
 async def summarize_content(
     content: str,
     extract_type: str = "summary",
@@ -46,4 +47,4 @@ async def summarize_content(
     Returns:
         处理后的内容
     """
-   
+    pass

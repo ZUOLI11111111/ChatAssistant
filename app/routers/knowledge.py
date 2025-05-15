@@ -15,14 +15,14 @@ class KnowledgeQuestion(BaseModel):
 async def ask_knowledge_question(
     request: KnowledgeQuestion
 ) -> Dict[str, Any]:
-    
+    pass
 
 @router.post("/upload")
 async def process_document(
     file: UploadFile = File(...),
     question: str = Form(...)
 ) -> Dict[str, Any]:
-    
+    pass
 
 @router.post("/compare")
 async def compare_concepts(
@@ -30,4 +30,4 @@ async def compare_concepts(
     concept2: str = Form(...),
     subject: Optional[str] = Form(None)
 ) -> Dict[str, Any]:
-   
+    pass

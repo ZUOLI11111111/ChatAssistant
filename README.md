@@ -32,8 +32,8 @@
 
 1. 克隆项目并进入项目目录
    ```bash
-   git clone https://github.com/yourusername/study-assistant-ai.git
-   cd study-assistant-ai
+   git clone https://github.com/ZUOLI11111111/ChatAssistant.git
+   cd ChatAssistant
    ```
 
 2. 创建虚拟环境并安装依赖

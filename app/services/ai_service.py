@@ -12,7 +12,7 @@ async def get_ai_response(
     temperature: float = 0.7,
     max_tokens: int = 1000
 ) -> str:
-   
+   pass
 
 # 用于知识库问答的函数
 async def query_with_context(
@@ -20,7 +20,7 @@ async def query_with_context(
     context: str,
     system_prompt: Optional[str] = None
 ) -> str:
-   
+   pass
    
   
 
@@ -30,5 +30,5 @@ async def format_response(
     format_type: str = "paragraph",
     language: str = "chinese"
 ) -> str:
-    
+    pass
     
