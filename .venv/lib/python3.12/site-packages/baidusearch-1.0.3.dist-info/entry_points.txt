@@ -1,0 +1,2 @@
+[console_scripts]
+baidusearch = baidusearch.baidusearch:run
