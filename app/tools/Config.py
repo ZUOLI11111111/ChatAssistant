@@ -39,6 +39,12 @@ class SearchSettings(BaseModel):
     lang: str = Field(default="zh", description="Language code for search results (e.g., en, zh, fr)",)
     country: str = Field(default="cn", description="Country code for search results (e.g., us, cn, uk)",)
 
+class AppConfig(BaseModel):
+    llm: Dict[str, LLMSettings]
+    serch_config: Optional[SearchSettings] = Field(None, description="Search configuration")
+    class Config:
+        arbitrary_types_allowed = True
+
 #暂时不用测试
 class Config:
     _instance = None
@@ -71,7 +77,8 @@ class Config:
     
     def LoadInitialConfig(self):
         t = self.LoadConfig().get("llm", {})
-        tt = { k: v for k, v in self.LoadConfig().get("llm", {}).items() }
+        #不一定对
+        tt = { k: v for k, v in self.LoadConfig().get("llm", {}).items() if isinstance(v, dict) }
         default_settings = {
             "model": t.get("model"),
             "base_url": t.get("base_url"),
@@ -82,8 +89,26 @@ class Config:
             "api_type": t.get("api_type", ""),
             "api_version": t.get("api_version", ""),
         }
-        #print(default_settings)
-        
-
+        search_config = self.LoadConfig().get("search", {})
+        search_settings = None
+        if search_config:
+            search_settings = SearchSettings(**search_config)
+        config_dict = {
+            "llm": {
+                "default": default_settings,
+                **{
+                    f: {**default_settings, **k}
+                    for f, k in tt.items()
+                },
+            },
+            "search_config": search_settings,
+        }
+        self._config = AppConfig(**config_dict)
+        #print(config_dict)
+    @property
+    def search_config(self) -> Optional[SearchSettings]:
+        return self._config.serch_config
+config = Config()
+#这仅仅是个测试
 Config().LoadInitialConfig()
 
