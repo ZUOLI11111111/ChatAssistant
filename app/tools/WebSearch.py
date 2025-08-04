@@ -9,6 +9,7 @@ from app.tools.Base import BaseTool, ToolResult
 from app.tools.BaseSearch import SearchItem, WebSearchEngine
 from app.tools.BingSearch import BingSearchEngine
 from app.tools.BaiduSearch import BaiduSearchEngine
+from tenacity import retry, stop_after_attempt, wait_exponential
 
 class SearchResult(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
@@ -115,6 +116,78 @@ class WebSearch(BaseTool):
     _search_engine: dict[str, WebSearchEngine] = {"baidu": BaiduSearchEngine(), "bing": BingSearchEngine(),}
     content_fetcher: WebContentFetcher = WebContentFetcher()
 
-    async def execute(self, query: str, num_results: int = 5, lang: Optional[str] = None, country: Optional[str] = None, fetch_content: bool = False,) -> SearchResponse:
-        retry_delay = (getattr(config.search_config))
-        
+    async def Execute(self,query: str,num_results: int = 5,lang: Optional[str] = None,country: Optional[str] = None,fetch_content: bool = False,) -> SearchResponse:
+        retry_delay = (getattr(config.search_config, "retry_delay", 60) if config.search_config else 60)
+        max_retries = (getattr(config.search_config, "max_retries", 3) if config.search_config else 3)
+        if lang is None:
+            lang = (getattr(config.search_config, "lang", "zh") if config.search_config else "zh")
+        if country is None:
+            country = ( getattr(config.search_config, "country", "cn") if config.search_config else "cn")
+        search_params = {"lang": lang, "country": country}
+        for retry_count in range(max_retries + 1):
+            results = await self.TryAllEngines(query, num_results, search_params)
+            if results:
+                if fetch_content:
+                    results = await self.FetchContentForResults(results)
+                return SearchResponse(status="success",query=query,results=results,metadata=SearchMetadata(total_results=len(results),language=lang,country=country,),)
+
+            if retry_count < max_retries:
+                print(f"All search engines failed. Waiting {retry_delay} seconds before retry {retry_count + 1}/{max_retries}...")
+                await asyncio.sleep(retry_delay)
+            else:
+                print(f"All search engines failed after {max_retries} retries. Giving up.")
+        return SearchResponse(query=query,error="All search engines failed to return results after multiple retries.",results=[],)
+    async def TryAllEngines(self, query: str, num_results: int, search_params: Dict[str, Any]) -> List[SearchResult]:
+        engine_order = self.GetEngineOrder()
+        failed_engines = []
+        for engine_name in engine_order:
+            engine = self._search_engine[engine_name]
+            print(f"🔎 Attempting search with {engine_name.capitalize()}...")
+            search_items = await self.PerformSearchWithEngine(engine, query, num_results, search_params)
+            if not search_items:
+                continue
+            if failed_engines:
+                print(f"Search successful with {engine_name.capitalize()} after trying: {', '.join(failed_engines)}")
+            return [SearchResult(position=i + 1,url=item.url,title=item.title or f"Result {i+1}",description=item.description or "",source=engine_name,)for i, item in enumerate(search_items)]
+        if failed_engines:
+            print(f"All search engines failed: {', '.join(failed_engines)}")
+        return []
+
+    async def FetchContentForResults(self, results: List[SearchResult]) -> List[SearchResult]:
+        if not results:
+            return []
+        tasks = [self.FetchSingleResultContent(result) for result in results]
+        fetched_results = await asyncio.gather(*tasks)
+        return [(result if isinstance(result, SearchResult) else SearchResult(**result.dict()))for result in fetched_results]
+
+    async def FetchSingleResultContent(self, result: SearchResult) -> SearchResult:
+        if result.url:
+            content = await self.content_fetcher.FetchContent(result.url)
+            if content:
+                result.raw_content = content
+        return result
+
+    def GetEngineOrder(self) -> List[str]:
+        preferred = (getattr(config.search_config, "engine", "baidu").lower()if config.search_config else "baidu")
+        fallbacks = ([engine.lower() for engine in config.search_config.fallback_engines]if config.search_config and hasattr(config.search_config, "fallback_engines")else [])
+        engine_order = [preferred] if preferred in self._search_engine else []
+        engine_order.extend([fb for fb in fallbacks if fb in self._search_engine and fb not in engine_order])
+        engine_order.extend([e for e in self._search_engine if e not in engine_order])
+        return engine_order
+
+    @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=1, max=10))
+    async def PerformSearchWithEngine(self,engine: WebSearchEngine,query: str,num_results: int,search_params: Dict[str, Any],) -> List[SearchItem]:
+        return await asyncio.get_event_loop().run_in_executor(
+            None,
+            lambda: list(engine.PerformSearch(query,num_results=num_results,lang=search_params.get("lang"),country=search_params.get("country"),)),
+        )
+
+
+if __name__ == "__main__":
+    web_search = WebSearch()
+    search_response = asyncio.run(
+        web_search.Execute(
+            query="Python programming", fetch_content=True, num_results=1
+        )
+    )
+    print(search_response)

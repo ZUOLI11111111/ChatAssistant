@@ -11,7 +11,7 @@ class BaseTool(ABC, BaseModel):
         arbitrary_types_allowed = True
     
     @abstractmethod
-    async def execute(self, **kwargs) -> Any:
+    async def Execute(self, **kwargs) -> Any:
         pass
     def ToParam(self) -> Dict:
         return {
