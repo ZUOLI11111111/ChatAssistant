@@ -21,8 +21,8 @@
 
 ## 技术栈
 
-- **后端**: FastAPI, Python 3.8+
-- **AI服务**: OpenAI API
+- **后端**: FastAPI, Python 3.12 venv
+- **AI服务**: deepseek API
 - **内容处理**: BeautifulSoup4, Requests
 - **异步处理**: asyncio
 
@@ -36,20 +36,19 @@
    cd ChatAssistant
    ```
 
-2. 创建虚拟环境并安装依赖
+2. 创建虚拟环境并安装依赖 操作系统:WSL UBUNTU24
    ```bash
    python -m venv venv
-   source venv/bin/activate  # Windows: venv\Scripts\activate
+   source .venv/bin/activate  # Windows: .venv\Scripts\activate
    pip install -r requirements.txt
    ```
 
 3. 配置环境变量
    ```bash
-   cp .env.example .env
-   # 编辑.env文件，填入你的OpenAI API密钥
+   在app/config/config.toml
    ```
 
-### 启动服务
+### 启动服务（暂时不需要）
 
 ```bash
 uvicorn app.main:app --reload
