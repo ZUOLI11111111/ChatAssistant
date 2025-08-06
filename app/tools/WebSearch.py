@@ -4,7 +4,7 @@ from typing import Any, Dict, List, Optional
 import requests
 from bs4 import BeautifulSoup
 from pydantic import BaseModel, ConfigDict, Field, model_validator
-from app.tools.Config import Config, config
+from app.tools.Config import config
 from app.tools.Base import BaseTool, ToolResult
 from app.tools.BaseSearch import SearchItem, WebSearchEngine
 from app.tools.BingSearch import BingSearchEngine
