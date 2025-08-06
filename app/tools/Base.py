@@ -12,7 +12,8 @@ class BaseTool(ABC, BaseModel):
     
     @abstractmethod
     async def Execute(self, **kwargs) -> Any:
-        pass
+        """1"""
+   
     def ToParam(self) -> Dict:
         return {
             "type": "function",
@@ -33,9 +34,9 @@ class ToolResult(BaseModel):
         arbitrary_types_allowed = True
 #暂时不调试
 class CLIResult(ToolResult):
-    pass
+    """1"""
 #暂时不调试
 class ToolFailure(ToolResult):
-    pass
+    """11111"""
 
    
