@@ -1,6 +1,7 @@
 # 学习辅助AI Agent
 
 基于FastAPI构建的学习辅助AI代理系统，提供作业辅导、知识答疑和内容爬虫功能。
+Python3.12
 
 ## 功能特点
 
@@ -48,13 +49,14 @@
    在app/config/config.toml
    ```
 
-### 启动服务（暂时不需要）
+### 启动服务
 
 ```bash
-uvicorn app.main:app --reload
+执行run_flow
+#uvicorn app.main:app --reload 这里是理想执行方式
 ```
 
-服务将在 http://localhost:8000 启动，API文档可通过 http://localhost:8000/docs 访问。
+服务将在 http://localhost:8000 启动，API文档可通过 http://localhost:8000/docs 访问。(最终情况目前不行)
 
 ## API接口
 
